@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h2>Receipts</h2><ul>{% for receipt in latest_receipt_list or [] %}<li><a href="/heartleaf/receipts/{{ receipt.id }}/">Receipt {{ receipt.id }}</a> — {{ receipt.purchase_total }}</li>{% else %}<li>No receipts available.</li>{% endfor %}</ul>{% endblock %}

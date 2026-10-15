@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "user_id": 1,
+  "store": {
+    "id": 1,
+    "number": "DEMO",
+    "address": "Example Street",
+    "city": "Example City"
+  },
+  "purchase_total": 2.5,
+  "receiptItems": [
+    {
+      "id": 1,
+      "label": "Synthetic example item",
+      "price": 2.5
+    }
+  ]
+}

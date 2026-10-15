@@ -1,0 +1,85 @@
+version: '2'
+
+services:
+
+  twinpeaks_postgres:
+    build: /home/darin/miles/twinpeaks/src/main/resources/postgres/docker
+    image: twinpeaks:postgres
+    container_name: twinpeaks--postgres
+    ports:
+      - "9000:5432"
+
+  heartleaf_postgres:
+    build: ./postgres
+    container_name: heartleaf--postgres
+    image: heartleaf:postgres
+    ports:
+      - "9001:5432"
+
+  twinpeaks_web:
+    image: com.miles/twinpeaks:0.0.2-SNAPSHOT
+    container_name: twinpeaks--web
+    ports:
+      - "8090:8090"
+    depends_on:
+      - twinpeaks_postgres
+
+  heartleaf_web:
+    build: .
+    container_name: heartleaf--web
+    command: python3 manage.py runserver 0.0.0.0:8000
+    env_file:
+      - ./oxbow_docker.env
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - heartleaf_postgres
+      - twinpeaks_web
+
+  watatic_search:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+    restart: always
+    network_mode: host
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - cluster.name=watatic-cluster
+      - bootstrap.memory_lock=true
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  watatic_search_test:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+    restart: always
+    network_mode: host
+    ports:
+      - "9201:9200"
+      - "9301:9300"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - cluster.name=watatic-cluster-test
+      - bootstrap.memory_lock=true
+      - "xpack.security.enabled=false"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  watatic_kibana:
+    image: docker.elastic.co/kibana/kibana:5.5.3
+    restart: always
+    network_mode: host
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://localhost:9200
+
+# Must be mounted like this or else permission aren't correct
+volumes:
+  esdata:
+    driver: local
